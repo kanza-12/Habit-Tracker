@@ -125,12 +125,11 @@
                 return count;
             }, [done]);
 
-            // Radar Data Logic
             const cats = ["salah", "quran", "dhikr", "health"];
             const radarPoints = cats.map((c, i) => {
                 const hs = HABITS.filter(h => h.cat === c);
                 const completed = hs.filter(h => done[activeDate]?.[h.id]).length;
-                const val = (completed / hs.length) * 100 || 5; // Minimum 5 for shape
+                const val = (completed / hs.length) * 100 || 5;
                 const angle = (Math.PI * 2 * i) / cats.length - Math.PI / 2;
                 const r = (val / 100) * 60;
                 return `${80 + Math.cos(angle) * r},${80 + Math.sin(angle) * r}`;
@@ -145,15 +144,17 @@
                             <h1 style={{margin:0}}>Kanza Ultimate</h1>
                             <span style={{color:'var(--text-dim)'}}>Lvl {level} Soul</span>
                         </div>
-                        <div onClick={() => setShowStats(!showStats)} style={{cursor:'pointer', color: var(--accent)}}>
+                        <div onClick={() => setShowStats(!showStats)} style={{cursor:'pointer', color: 'var(--accent)'}}>
                             <i className={`fas fa-${showStats ? 'list' : 'chart-pie'} fa-lg`}></i>
                         </div>
                     </div>
 
                     <div className="xp-card">
-                        <div style={{display:'flex', justifyContent:'space-between', fontSize:'12px'}}>
-                            <span>Progress to Level {level+1}</span>
-                            <span>{xpInLevel}/500 XP</span>
+                        <div style={{display:'flex', justifyBetween:'space-between', fontSize:'12px'}}>
+                            <div style={{display:'flex', width:'100%', justifyContent:'space-between'}}>
+                                <span>Progress to Level {level+1}</span>
+                                <span>{xpInLevel}/500 XP</span>
+                            </div>
                         </div>
                         <div className="xp-bar-bg"><div className="xp-bar-fill" style={{width: `${(xpInLevel/500)*100}%`}}></div></div>
                     </div>
@@ -226,6 +227,10 @@
 
         const root = ReactDOM.createRoot(document.getElementById("root"));
         root.render(<App />);
+
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("./sw.js");
+        }
     </script>
 </body>
 </html>
