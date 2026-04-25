@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kanza Mastery</title>
+    <title>Kanza Quest</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -11,12 +11,13 @@
     
     <style>
         :root {
-            --bg: #0d1117;
-            --surface: #161b22;
-            --glass: rgba(33, 38, 45, 0.7);
+            --bg: #0a0e14;
+            --surface: #1c2128;
+            --glass: rgba(28, 33, 40, 0.8);
             --border: rgba(240, 246, 252, 0.1);
             --accent: #10b981;
-            --accent-light: #34d399;
+            --accent-glow: rgba(16, 185, 129, 0.3);
+            --pink: #db2777;
             --text-main: #f0f6fc;
             --text-dim: #8b949e;
         }
@@ -25,48 +26,65 @@
             margin: 0;
             background: var(--bg);
             color: var(--text-main);
-            font-family: -apple-system, system-ui, sans-serif;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
 
-        .container { max-width: 420px; margin: 0 auto; padding: 20px; padding-bottom: 120px; }
+        .container { max-width: 450px; margin: 0 auto; padding: 20px; padding-bottom: 140px; }
 
-        .profile-section { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
-        .xp-card { 
-            background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 20px;
-            backdrop-filter: blur(10px);
+        .header-card { 
+            background: linear-gradient(135deg, var(--surface), #0d1117);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            position: relative;
         }
-        .xp-bar-bg { background: #000; height: 8px; border-radius: 4px; margin-top: 10px; overflow: hidden; }
-        .xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); transition: 0.5s; box-shadow: 0 0 10px var(--accent); }
 
-        .toggle-container { background: var(--surface); display: flex; border-radius: 30px; padding: 4px; margin-bottom: 20px; border: 1px solid var(--border); }
-        .toggle-btn { flex: 1; padding: 10px; text-align: center; border-radius: 25px; cursor: pointer; transition: 0.3s; font-size: 14px; font-weight: 600; color: var(--text-dim); }
-        .toggle-btn.active.normal { background: var(--accent); color: white; }
-        .toggle-btn.active.period { background: #be185d; color: white; box-shadow: 0 0 15px rgba(190, 24, 93, 0.4); }
+        .rank-badge {
+            position: absolute; top: 15px; right: 15px;
+            background: var(--accent-glow); color: var(--accent);
+            padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: bold; border: 1px solid var(--accent);
+        }
 
-        .cal-strip { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .cal-day { width: 45px; padding: 10px 0; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid transparent; }
-        .cal-day.active { background: var(--surface); border-color: var(--accent); }
+        .xp-bar-container { height: 10px; background: #000; border-radius: 5px; margin-top: 15px; overflow: hidden; }
+        .xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #6ee7b7); transition: width 0.8s ease; }
+
+        .mode-toggle {
+            display: flex; background: var(--surface); border-radius: 12px; padding: 5px; margin-bottom: 25px; border: 1px solid var(--border);
+        }
+        .mode-btn { 
+            flex: 1; padding: 10px; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: 600; font-size: 13px; color: var(--text-dim);
+        }
+        .mode-btn.active.normal { background: var(--accent); color: white; }
+        .mode-btn.active.period { background: var(--pink); color: white; }
+
+        .section-header { 
+            display: flex; align-items: center; gap: 10px; margin: 25px 0 12px 5px; font-size: 14px; font-weight: bold; color: var(--accent); text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .habit-grid { display: flex; flex-direction: column; gap: 10px; }
 
         .habit-card { 
-            background: var(--glass); border: 1px solid var(--border); padding: 14px; border-radius: 16px; 
-            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
+            background: var(--glass); border: 1px solid var(--border); padding: 15px; border-radius: 16px; 
+            display: flex; justify-content: space-between; align-items: center; transition: 0.3s;
         }
-        .habit-card.done { border-color: var(--accent); background: rgba(16, 185, 129, 0.05); }
-        .check-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text-dim); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .done .check-btn { background: var(--accent); border-color: var(--accent); }
+        .habit-card.done { border-color: var(--accent); background: rgba(16, 185, 129, 0.05); opacity: 0.7; }
 
-        .custom-input-box {
-            background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 12px;
-            display: flex; gap: 10px; margin-top: 20px;
+        .check-circle { 
+            width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--border); 
+            display: flex; align-items: center; justify-content: center;
         }
-        .custom-input-box input {
-            background: transparent; border: none; color: white; flex: 1; outline: none; font-size: 14px;
-        }
-        .add-btn { background: var(--accent); border: none; color: white; padding: 5px 15px; border-radius: 10px; cursor: pointer; }
+        .done .check-circle { background: var(--accent); border-color: var(--accent); }
+        .period-mode .done .check-circle { background: var(--pink); border-color: var(--pink); }
 
-        .section-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin: 15px 0 10px 0; display: block; }
-        .delete-habit { color: #ef4444; font-size: 12px; margin-left: 10px; opacity: 0.5; cursor: pointer; }
+        .add-habit-box {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px; background: var(--surface); border: 1px solid var(--border);
+            padding: 12px; border-radius: 18px; display: flex; gap: 10px;
+        }
+        .add-habit-box input { flex: 1; background: transparent; border: none; color: white; outline: none; }
+        .add-habit-box button { background: var(--accent); border: none; color: white; padding: 8px 16px; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -75,126 +93,138 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        const DEFAULT_HABITS = [
-            { id: "wakeup", label: "Wake up 3:30 AM", pts: 25, icon: "⏰", hideInPeriod: true },
-            { id: "tahajjud", label: "Tahajjud", pts: 40, icon: "✨", hideInPeriod: true },
-            { id: "fajr", label: "Fajr Prayer", pts: 20, icon: "🌅", hideInPeriod: true },
-            { id: "dhuhr", label: "Dhuhr Prayer", pts: 20, icon: "☀️", hideInPeriod: true },
-            { id: "asr", label: "Asr Prayer", pts: 20, icon: "🌤️", hideInPeriod: true },
-            { id: "maghrib", label: "Maghrib Prayer", pts: 20, icon: "🌇", hideInPeriod: true },
-            { id: "isha", label: "Isha Prayer", pts: 20, icon: "🌙", hideInPeriod: true },
-            { id: "quran", label: "Read Quran", pts: 30, icon: "📖", hideInPeriod: true },
-            { id: "waqiah", label: "Surah Al-Waqiah", pts: 15, icon: "💎", hideInPeriod: true },
-            { id: "yaseen", label: "Surah Yaseen", pts: 15, icon: "💚", hideInPeriod: true },
-            { id: "rahman", label: "Surah Ar-Rahman", pts: 15, icon: "🌿", hideInPeriod: true },
-            { id: "water", label: "Drink Water", pts: 10, icon: "💧", hideInPeriod: false },
-            { id: "sleep", label: "Sleep before 12 AM", pts: 20, icon: "😴", hideInPeriod: false },
-            { id: "tajweed", label: "Learn Tajweed", pts: 25, icon: "🗣️", hideInPeriod: false },
-            { id: "ayah", label: "Read 1 Ayah", pts: 10, icon: "📜", hideInPeriod: false },
-            { id: "hadith", label: "Read 3 Ahadith", pts: 20, icon: "📚", hideInPeriod: false },
-            { id: "astaghfar", label: "1k Astaghfaar", pts: 30, icon: "📿", hideInPeriod: false },
-            { id: "darood", label: "1k Darood", pts: 30, icon: "💖", hideInPeriod: false },
-            { id: "charity", label: "Charity / Sadaqah", pts: 20, icon: "🤝", hideInPeriod: false },
+        const HABIT_DATA = [
+            // SALAH
+            { id: "wakeup", label: "Wake up 3:30 AM", pts: 30, cat: "Salah", icon: "⏰", hideInPeriod: true },
+            { id: "tahajjud", label: "Tahajjud", pts: 50, cat: "Salah", icon: "✨", hideInPeriod: true },
+            { id: "fajr", label: "Fajr Prayer", pts: 25, cat: "Salah", icon: "🌅", hideInPeriod: true },
+            { id: "dhuhr", label: "Dhuhr Prayer", pts: 20, cat: "Salah", icon: "☀️", hideInPeriod: true },
+            { id: "asr", label: "Asr Prayer", pts: 20, cat: "Salah", icon: "🌤️", hideInPeriod: true },
+            { id: "maghrib", label: "Maghrib Prayer", pts: 20, cat: "Salah", icon: "🌇", hideInPeriod: true },
+            { id: "isha", label: "Isha Prayer", pts: 20, cat: "Salah", icon: "🌙", hideInPeriod: true },
+
+            // QURAN
+            { id: "quran", label: "Read Quran", pts: 40, cat: "Quran", icon: "📖", hideInPeriod: true },
+            { id: "waqiah", label: "Surah Al-Waqiah", pts: 20, cat: "Quran", icon: "💎", hideInPeriod: true },
+            { id: "yaseen", label: "Surah Yaseen", pts: 20, cat: "Quran", icon: "💚", hideInPeriod: true },
+            { id: "rahman", label: "Surah Ar-Rahman", pts: 20, cat: "Quran", icon: "🌿", hideInPeriod: true },
+
+            // FRIDAY SPECIALS
+            { id: "kahf", label: "Surah Al-Kahf", pts: 50, cat: "Friday Rituals", icon: "🕯️", hideInPeriod: true, friOnly: true },
+            { id: "ghusl", label: "Friday Ghusl", pts: 20, cat: "Friday Rituals", icon: "🚿", hideInPeriod: false, friOnly: true },
+            { id: "nails", label: "Cut Nails", pts: 15, cat: "Friday Rituals", icon: "✂️", hideInPeriod: false, friOnly: true },
+            { id: "perfume", label: "Apply Perfume / Ittar", pts: 10, cat: "Friday Rituals", icon: "🌸", hideInPeriod: false, friOnly: true },
+            { id: "salawat", label: "Increased Salawat", pts: 30, cat: "Friday Rituals", icon: "📿", hideInPeriod: false, friOnly: true },
+
+            // SPIRITUAL/DHIKR
+            { id: "tajweed", label: "Learn Tajweed", pts: 30, cat: "Spiritual", icon: "🗣️", hideInPeriod: false },
+            { id: "hadith", label: "Read 3 Ahadith", pts: 25, cat: "Spiritual", icon: "📚", hideInPeriod: false },
+            { id: "astaghfar", label: "1k Astaghfaar", pts: 40, cat: "Spiritual", icon: "📿", hideInPeriod: false },
+            { id: "darood", label: "1k Darood", pts: 40, cat: "Spiritual", icon: "💖", hideInPeriod: false },
+            { id: "charity", label: "Charity", pts: 25, cat: "Spiritual", icon: "🤝", hideInPeriod: false },
+            
+            // PRODUCTIVITY/FASTING
+            { id: "water", label: "Drink Water", pts: 15, cat: "Productivity", icon: "💧", hideInPeriod: false },
+            { id: "sleep", label: "Sleep before 12AM", pts: 30, cat: "Productivity", icon: "😴", hideInPeriod: false },
+            { id: "fasting", label: "Sunnah Fasting", pts: 100, cat: "Fasting", icon: "🍱", hideInPeriod: true, sunnahOnly: true }
         ];
 
         function App() {
-            const [done, setDone] = useState(() => JSON.parse(localStorage.getItem("k_pro_done") || "{}"));
-            const [pts, setPts] = useState(() => parseInt(localStorage.getItem("k_pro_xp") || "0"));
-            const [isPeriod, setIsPeriod] = useState(() => localStorage.getItem("k_pro_p") === "true");
-            const [customHabits, setCustomHabits] = useState(() => JSON.parse(localStorage.getItem("k_pro_custom") || "[]"));
-            const [activeDate, setActiveDate] = useState(new Date().toISOString().split('T')[0]);
+            const [done, setDone] = useState(() => JSON.parse(localStorage.getItem("k_quest_done") || "{}"));
+            const [pts, setPts] = useState(() => parseInt(localStorage.getItem("k_quest_xp") || "0"));
+            const [isPeriod, setIsPeriod] = useState(() => localStorage.getItem("k_quest_p") === "true");
+            const [customs, setCustoms] = useState(() => JSON.parse(localStorage.getItem("k_quest_custom") || "[]"));
             const [input, setInput] = useState("");
 
+            const dateKey = new Date().toISOString().split('T')[0];
+            const dayNum = new Date().getDay(); // 0=Sun, 1=Mon, 4=Thu, 5=Fri
+
             useEffect(() => {
-                localStorage.setItem("k_pro_done", JSON.stringify(done));
-                localStorage.setItem("k_pro_xp", pts);
-                localStorage.setItem("k_pro_p", isPeriod);
-                localStorage.setItem("k_pro_custom", JSON.stringify(customHabits));
-            }, [done, pts, isPeriod, customHabits]);
+                localStorage.setItem("k_quest_done", JSON.stringify(done));
+                localStorage.setItem("k_quest_xp", pts);
+                localStorage.setItem("k_quest_p", isPeriod);
+                localStorage.setItem("k_quest_custom", JSON.stringify(customs));
+            }, [done, pts, isPeriod, customs]);
 
-            const level = Math.floor(pts / 500);
-            const xpInLevel = pts % 500;
-
-            const allHabits = [...DEFAULT_HABITS, ...customHabits];
-            const filteredHabits = allHabits.filter(h => !(isPeriod && h.hideInPeriod));
+            const level = Math.floor(pts / 1000);
+            const xpInLevel = pts % 1000;
 
             const toggle = (id, habitPts) => {
-                const wasDone = !!done[activeDate]?.[id];
-                if (window.navigator.vibrate) window.navigator.vibrate(15);
-                setDone(p => ({ ...p, [activeDate]: { ...p[activeDate], [id]: !wasDone } }));
+                const wasDone = !!done[dateKey]?.[id];
+                setDone(p => ({ ...p, [dateKey]: { ...p[dateKey], [id]: !wasDone } }));
                 setPts(p => wasDone ? Math.max(0, p - habitPts) : p + habitPts);
             };
 
             const addCustom = () => {
                 if (!input.trim()) return;
-                const newHabit = { id: Date.now().toString(), label: input, pts: 15, icon: "✨", hideInPeriod: false, isCustom: true };
-                setCustomHabits([...customHabits, newHabit]);
+                setCustoms([...customs, { id: Date.now().toString(), label: input, pts: 20, cat: "Custom", icon: "⭐", hideInPeriod: false }]);
                 setInput("");
             };
 
-            const removeCustom = (id) => {
-                setCustomHabits(customHabits.filter(h => h.id !== id));
-            };
+            const groupedHabits = useMemo(() => {
+                const isSunnahDay = [1, 4].includes(dayNum);
+                const isFriday = dayNum === 5;
+
+                const base = [...HABIT_DATA, ...customs].filter(h => {
+                    if (isPeriod && h.hideInPeriod) return false;
+                    if (h.sunnahOnly && !isSunnahDay) return false;
+                    if (h.friOnly && !isFriday) return false;
+                    return true;
+                });
+
+                return base.reduce((acc, h) => {
+                    if (!acc[h.cat]) acc[h.cat] = [];
+                    acc[h.cat].push(h);
+                    return acc;
+                }, {});
+            }, [isPeriod, customs, dayNum]);
 
             return (
-                <div className="container">
-                    <div className="profile-section">
-                        <div>
-                            <h1 style={{margin:0, fontSize: '24px'}}>Kanza Pro</h1>
-                            <span style={{color: 'var(--text-dim)'}}>Level {level} Mastery</span>
+                <div className={`container ${isPeriod ? 'period-mode' : ''}`}>
+                    <div className="header-card">
+                        <span className="rank-badge">LVL {level}</span>
+                        <h2 style={{margin:0}}>Kanza's Journey</h2>
+                        <div className="xp-bar-container">
+                            <div className="xp-bar-fill" style={{width: (xpInLevel/10) + "%"}}></div>
+                        </div>
+                        <div style={{display:'flex', justifyContent:'space-between', fontSize:'11px', marginTop:'8px', color: 'var(--text-dim)'}}>
+                            <span>{xpInLevel} / 1000 XP</span>
                         </div>
                     </div>
 
-                    <div className="xp-card">
-                        <div style={{display:'flex', justifyContent:'space-between', fontSize:'12px', marginBottom: '5px'}}>
-                            <span>XP Progress</span>
-                            <span>{xpInLevel}/500</span>
-                        </div>
-                        <div className="xp-bar-bg">
-                            <div className="xp-bar-fill" style={{width: `${(xpInLevel/500)*100}%`}}></div>
-                        </div>
+                    <div className="mode-toggle">
+                        <div className={`mode-btn ${!isPeriod ? 'active normal' : ''}`} onClick={() => setIsPeriod(false)}>Normal</div>
+                        <div className={`mode-btn ${isPeriod ? 'active period' : ''}`} onClick={() => setIsPeriod(true)}>Period Mode</div>
                     </div>
 
-                    <div className="toggle-container">
-                        <div className={`toggle-btn ${!isPeriod ? 'active normal' : ''}`} onClick={() => setIsPeriod(false)}>Normal</div>
-                        <div className={`toggle-btn ${isPeriod ? 'active period' : ''}`} onClick={() => setIsPeriod(true)}>Period Mode</div>
-                    </div>
-
-                    <div className="cal-strip">
-                        {[...Array(7)].map((_, i) => {
-                            const d = new Date(); d.setDate(d.getDate() - (6 - i));
-                            const k = d.toISOString().split('T')[0];
-                            return (
-                                <div key={k} className={`cal-day ${activeDate === k ? 'active' : ''}`} onClick={() => setActiveDate(k)}>
-                                    <div style={{fontSize:'10px', color: 'var(--text-dim)'}}>{d.toLocaleDateString('en',{weekday:'short'})}</div>
-                                    <strong>{d.getDate()}</strong>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    <span className="section-label">Today's Habits</span>
-                    {filteredHabits.map(h => {
-                        const isDone = !!done[activeDate]?.[h.id];
-                        return (
-                            <div key={h.id} className={`habit-card ${isDone ? 'done' : ''}`} onClick={() => toggle(h.id, h.pts)}>
-                                <div style={{display:'flex', gap:'12px', alignItems:'center'}}>
-                                    <span>{h.icon}</span>
-                                    <div>
-                                        <div style={{fontWeight:'600', fontSize:'14px'}}>{h.label}</div>
-                                        <div style={{fontSize:'10px', color: 'var(--text-dim)'}}>+{h.pts} XP</div>
-                                    </div>
-                                    {h.isCustom && <i className="fas fa-times delete-habit" onClick={(e) => { e.stopPropagation(); removeCustom(h.id); }}></i>}
-                                </div>
-                                <div className="check-btn">{isDone && <i className="fas fa-check" style={{fontSize:'10px', color:'white'}}></i>}</div>
+                    {Object.entries(groupedHabits).map(([cat, habits]) => (
+                        <div key={cat}>
+                            <div className="section-header">{cat}</div>
+                            <div className="habit-grid">
+                                {habits.map(h => {
+                                    const isDone = !!done[dateKey]?.[h.id];
+                                    return (
+                                        <div key={h.id} className={`habit-card ${isDone ? 'done' : ''}`} onClick={() => toggle(h.id, h.pts)}>
+                                            <div style={{display:'flex', gap:'15px', alignItems:'center'}}>
+                                                <span style={{fontSize:'20px'}}>{h.icon}</span>
+                                                <div>
+                                                    <div style={{fontWeight:'bold', fontSize:'14px'}}>{h.label}</div>
+                                                    <div style={{fontSize:'11px', color: 'var(--text-dim)'}}>+{h.pts} XP</div>
+                                                </div>
+                                            </div>
+                                            <div className="check-circle">
+                                                {isDone && <i className="fas fa-check" style={{fontSize:'12px', color:'white'}}></i>}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
-                        );
-                    })}
+                        </div>
+                    ))}
 
-                    <span className="section-label">Add Custom Habit</span>
-                    <div className="custom-input-box">
-                        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="E.g. Study Math..." onKeyPress={(e) => e.key === 'Enter' && addCustom()} />
-                        <button className="add-btn" onClick={addCustom}>Add</button>
+                    <div className="add-habit-box">
+                        <input value={input} onChange={e => setInput(e.target.value)} placeholder="New Personal Goal..." onKeyPress={e => e.key === 'Enter' && addCustom()} />
+                        <button onClick={addCustom}>ADD</button>
                     </div>
                 </div>
             );
