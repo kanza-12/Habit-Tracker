@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Kanza Ultimate</title>
+    <title>Kanza Mastery</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -29,8 +29,9 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        .container { max-width: 420px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 420px; margin: 0 auto; padding: 20px; padding-bottom: 120px; }
 
+        /* Header & XP */
         .profile-section { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
         .xp-card { 
             background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 20px;
@@ -39,30 +40,39 @@
         .xp-bar-bg { background: #000; height: 8px; border-radius: 4px; margin-top: 10px; overflow: hidden; }
         .xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); transition: 0.5s; box-shadow: 0 0 10px var(--accent); }
 
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat-box { background: var(--glass); border: 1px solid var(--border); padding: 12px; border-radius: 12px; text-align: center; }
-        .radar-container { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; justify-content: center; margin-bottom: 20px; }
-
+        /* Mode Toggle */
         .toggle-container { background: var(--surface); display: flex; border-radius: 30px; padding: 4px; margin-bottom: 20px; border: 1px solid var(--border); }
         .toggle-btn { flex: 1; padding: 10px; text-align: center; border-radius: 25px; cursor: pointer; transition: 0.3s; font-size: 14px; font-weight: 600; color: var(--text-dim); }
         .toggle-btn.active.normal { background: var(--accent); color: white; }
         .toggle-btn.active.period { background: #be185d; color: white; box-shadow: 0 0 15px rgba(190, 24, 93, 0.4); }
 
+        /* Calendar */
         .cal-strip { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .cal-day { width: 45px; padding: 10px 0; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid transparent; }
         .cal-day.active { background: var(--surface); border-color: var(--accent); }
 
+        /* Habits */
         .habit-card { 
-            background: var(--glass); border: 1px solid var(--border); padding: 16px; border-radius: 16px; 
-            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
+            background: var(--glass); border: 1px solid var(--border); padding: 14px; border-radius: 16px; 
+            margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
         }
         .habit-card.done { border-color: var(--accent); background: rgba(16, 185, 129, 0.05); }
         .check-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text-dim); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .done .check-btn { background: var(--accent); border-color: var(--accent); }
 
-        .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
-        .badge { background: #1e293b; color: #fbbf24; padding: 4px 10px; border-radius: 8px; font-size: 11px; border: 1px solid #fbbf24; font-weight: bold; }
-        .section-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
+        /* Custom Habit Input */
+        .custom-input-box {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 12px;
+            display: flex; gap: 10px; margin-top: 20px;
+        }
+        .custom-input-box input {
+            background: transparent; border: none; color: white; flex: 1; outline: none; font-size: 14px;
+        }
+        .add-btn { background: var(--accent); border: none; color: white; padding: 5px 15px; border-radius: 10px; cursor: pointer; }
+
+        .section-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin: 15px 0 10px 0; display: block; }
+        
+        .delete-habit { color: #ef4444; font-size: 12px; margin-left: 10px; opacity: 0.5; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -71,163 +81,134 @@
     <script type="text/babel">
         const { useState, useEffect, useMemo } = React;
 
-        const HABITS = [
-            { id: "fajr", label: "Fajr", cat: "salah", pts: 20, icon: "🌅" },
-            { id: "dhuhr", label: "Dhuhr", cat: "salah", pts: 20, icon: "☀️" },
-            { id: "asr", label: "Asr", cat: "salah", pts: 20, icon: "🌤️" },
-            { id: "maghrib", label: "Maghrib", cat: "salah", pts: 20, icon: "🌇" },
-            { id: "isha", label: "Isha", cat: "salah", pts: 20, icon: "🌙" },
-            { id: "quran", label: "Quran", cat: "quran", pts: 30, icon: "📖" },
-            { id: "dhikr", label: "Dhikr", cat: "dhikr", pts: 15, icon: "📿" },
-            { id: "water", label: "Water", cat: "health", pts: 10, icon: "💧" }
+        const DEFAULT_HABITS = [
+            // Disappear in Period Mode
+            { id: "wakeup", label: "Wake up 3:30 AM", pts: 25, icon: "⏰", hideInPeriod: true },
+            { id: "tahajjud", label: "Tahajjud", pts: 40, icon: "✨", hideInPeriod: true },
+            { id: "fajr", label: "Fajr Prayer", pts: 20, icon: "🌅", hideInPeriod: true },
+            { id: "dhuhr", label: "Dhuhr Prayer", pts: 20, icon: "☀️", hideInPeriod: true },
+            { id: "asr", label: "Asr Prayer", pts: 20, icon: "🌤️", hideInPeriod: true },
+            { id: "maghrib", label: "Maghrib Prayer", pts: 20, icon: "🌇", hideInPeriod: true },
+            { id: "isha", label: "Isha Prayer", pts: 20, icon: "🌙", hideInPeriod: true },
+            { id: "quran", label: "Read Quran", pts: 30, icon: "📖", hideInPeriod: true },
+            { id: "waqiah", label: "Surah Al-Waqiah", pts: 15, icon: "💎", hideInPeriod: true },
+            { id: "yaseen", label: "Surah Yaseen", pts: 15, icon: "💚", hideInPeriod: true },
+            { id: "rahman", label: "Surah Ar-Rahman", pts: 15, icon: "🌿", hideInPeriod: true },
+            
+            // Stay in Period Mode
+            { id: "water", label: "Drink Water", pts: 10, icon: "💧", hideInPeriod: false },
+            { id: "sleep", label: "Sleep before 12 AM", pts: 20, icon: "😴", hideInPeriod: false },
+            { id: "tajweed", label: "Learn Tajweed", pts: 25, icon: "🗣️", hideInPeriod: false },
+            { id: "ayah", label: "Read 1 Ayah", pts: 10, icon: "📜", hideInPeriod: false },
+            { id: "hadith", label: "Read 3 Ahadith", pts: 20, icon: "📚", hideInPeriod: false },
+            { id: "astaghfar", label: "1k Astaghfaar", pts: 30, icon: "📿", hideInPeriod: false },
+            { id: "darood", label: "1k Darood", pts: 30, icon: "💖", hideInPeriod: false },
+            { id: "charity", label: "Charity / Sadaqah", pts: 20, icon: "🤝", hideInPeriod: false },
         ];
 
-        const SALAH_IDS = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
-
         function App() {
-            const [done, setDone] = useState(() => JSON.parse(localStorage.getItem("k_ult_done") || "{}"));
-            const [pts, setPts] = useState(() => parseInt(localStorage.getItem("k_ult_xp") || "0"));
-            const [isPeriod, setIsPeriod] = useState(() => localStorage.getItem("k_ult_p") === "true");
+            const [done, setDone] = useState(() => JSON.parse(localStorage.getItem("k_pro_done") || "{}"));
+            const [pts, setPts] = useState(() => parseInt(localStorage.getItem("k_pro_xp") || "0"));
+            const [isPeriod, setIsPeriod] = useState(() => localStorage.getItem("k_pro_p") === "true");
+            const [customHabits, setCustomHabits] = useState(() => JSON.parse(localStorage.getItem("k_pro_custom") || "[]"));
             const [activeDate, setActiveDate] = useState(new Date().toISOString().split('T')[0]);
-            const [showStats, setShowStats] = useState(false);
+            const [input, setInput] = useState("");
 
             useEffect(() => {
-                localStorage.setItem("k_ult_done", JSON.stringify(done));
-                localStorage.setItem("k_ult_xp", pts);
-                localStorage.setItem("k_ult_p", isPeriod);
-            }, [done, pts, isPeriod]);
+                localStorage.setItem("k_pro_done", JSON.stringify(done));
+                localStorage.setItem("k_pro_xp", pts);
+                localStorage.setItem("k_pro_p", isPeriod);
+                localStorage.setItem("k_pro_custom", JSON.stringify(customHabits));
+            }, [done, pts, isPeriod, customHabits]);
 
             const level = Math.floor(pts / 500);
             const xpInLevel = pts % 500;
 
-            const toggle = (id) => {
-                const habit = HABITS.find(h => h.id === id);
+            const allHabits = [...DEFAULT_HABITS, ...customHabits];
+            const filteredHabits = allHabits.filter(h => !(isPeriod && h.hideInPeriod));
+
+            const toggle = (id, habitPts) => {
                 const wasDone = !!done[activeDate]?.[id];
                 if (window.navigator.vibrate) window.navigator.vibrate(15);
                 setDone(p => ({ ...p, [activeDate]: { ...p[activeDate], [id]: !wasDone } }));
-                setPts(p => wasDone ? Math.max(0, p - habit.pts) : p + habit.pts);
+                setPts(p => wasDone ? Math.max(0, p - habitPts) : p + habitPts);
             };
 
-            const streak = useMemo(() => {
-                let count = 0; let d = new Date();
-                while (true) {
-                    const k = d.toISOString().split('T')[0];
-                    const dayData = done[k] || {};
-                    if (Object.values(dayData).some(v => v === true)) { 
-                        count++; 
-                        d.setDate(d.getDate() - 1); 
-                    } else break;
-                }
-                return count;
-            }, [done]);
+            const addCustom = () => {
+                if (!input.trim()) return;
+                const newHabit = { id: Date.now().toString(), label: input, pts: 15, icon: "✨", hideInPeriod: false, isCustom: true };
+                setCustomHabits([...customHabits, newHabit]);
+                setInput("");
+            };
 
-            const cats = ["salah", "quran", "dhikr", "health"];
-            const radarPoints = cats.map((c, i) => {
-                const hs = HABITS.filter(h => h.cat === c);
-                const completed = hs.filter(h => done[activeDate]?.[h.id]).length;
-                const val = (completed / hs.length) * 100 || 5;
-                const angle = (Math.PI * 2 * i) / cats.length - Math.PI / 2;
-                const r = (val / 100) * 60;
-                return `${80 + Math.cos(angle) * r},${80 + Math.sin(angle) * r}`;
-            }).join(" ");
-
-            const filteredHabits = HABITS.filter(h => !(isPeriod && SALAH_IDS.includes(h.id)));
+            const removeCustom = (id) => {
+                setCustomHabits(customHabits.filter(h => h.id !== id));
+            };
 
             return (
                 <div className="container">
                     <div className="profile-section">
                         <div>
-                            <h1 style={{margin:0}}>Kanza Ultimate</h1>
-                            <span style={{color:'var(--text-dim)'}}>Lvl {level} Soul</span>
-                        </div>
-                        {/* FIXED: Quotes added around var(--accent) */}
-                        <div onClick={() => setShowStats(!showStats)} style={{cursor:'pointer', color: 'var(--accent)'}}>
-                            <i className={`fas fa-${showStats ? 'list' : 'chart-pie'} fa-lg`}></i>
+                            <h1 style={{margin:0, fontSize: '24px'}}>Kanza Pro</h1>
+                            <span style={{color:'var(--text-dim)'}}>Level {level} Mastery</span>
                         </div>
                     </div>
 
                     <div className="xp-card">
-                        <div style={{display:'flex', justifyContent:'space-between', fontSize:'12px'}}>
-                            <span>Progress to Level {level+1}</span>
-                            <span>{xpInLevel}/500 XP</span>
+                        <div style={{display:'flex', justifyContent:'space-between', fontSize:'12px', marginBottom: '5px'}}>
+                            <span>XP Progress</span>
+                            <span>{xpInLevel}/500</span>
                         </div>
-                        <div className="xp-bar-bg">
-                            <div className="xp-bar-fill" style={{width: `${(xpInLevel/500)*100}%`}}></div>
-                        </div>
+                        <div className="xp-bar-bg"><div className="xp-bar-fill" style={{width: `${(xpInLevel/500)*100}%`}}></div></div>
                     </div>
 
-                    <div className="badge-row">
-                        {streak >= 3 && <span className="badge">🔥 {streak} DAY STREAK</span>}
-                        {pts >= 1000 && <span className="badge">💎 1K XP CLUB</span>}
-                        {isPeriod && <span className="badge" style={{borderColor:'#ec4899', color:'#ec4899'}}>🌸 RECOVERY</span>}
+                    <div className="toggle-container">
+                        <div className={`toggle-btn ${!isPeriod ? 'active normal' : ''}`} onClick={() => setIsPeriod(false)}>Normal</div>
+                        <div className={`toggle-btn ${isPeriod ? 'active period' : ''}`} onClick={() => setIsPeriod(true)}>Period Mode</div>
                     </div>
 
-                    {showStats ? (
-                        <div className="stats-view">
-                            <span className="section-label">Balance Radar</span>
-                            <div className="radar-container">
-                                <svg width="160" height="160">
-                                    <circle cx="80" cy="80" r="60" fill="none" stroke="var(--border)" strokeDasharray="4" />
-                                    <polygon points={radarPoints} fill="rgba(16, 185, 129, 0.3)" stroke="var(--accent)" strokeWidth="2" />
-                                    {cats.map((c, i) => {
-                                        const angle = (Math.PI * 2 * i) / cats.length - Math.PI / 2;
-                                        return <text key={c} x={80 + Math.cos(angle)*75} y={80 + Math.sin(angle)*75} fill="var(--text-dim)" fontSize="10" textAnchor="middle">{c}</text>
-                                    })}
-                                </svg>
-                            </div>
-                            <div className="stats-grid">
-                                <div className="stat-box"><strong>{streak}</strong><div style={{fontSize:'10px'}}>STREAK</div></div>
-                                <div className="stat-box"><strong>{pts}</strong><div style={{fontSize:'10px'}}>TOTAL XP</div></div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="habit-view">
-                            <div className="toggle-container">
-                                <div className={`toggle-btn ${!isPeriod ? 'active normal' : ''}`} onClick={() => setIsPeriod(false)}>Normal</div>
-                                <div className={`toggle-btn ${isPeriod ? 'active period' : ''}`} onClick={() => setIsPeriod(true)}>Period Mode</div>
-                            </div>
+                    <div className="cal-strip">
+                        {[...Array(7)].map((_, i) => {
+                            const d = new Date(); d.setDate(d.getDate() - (6 - i));
+                            const k = d.toISOString().split('T')[0];
+                            return (
+                                <div key={k} className={`cal-day ${activeDate === k ? 'active' : ''}`} onClick={() => setActiveDate(k)}>
+                                    <div style={{fontSize:'10px', color:'var(--text-dim)'}}>{d.toLocaleDateString('en',{weekday:'short'})}</div>
+                                    <strong>{d.getDate()}</strong>
+                                </div>
+                            );
+                        })}
+                    </div>
 
-                            <div className="cal-strip">
-                                {[...Array(7)].map((_, i) => {
-                                    const d = new Date(); d.setDate(d.getDate() - (6 - i));
-                                    const k = d.toISOString().split('T')[0];
-                                    return (
-                                        <div key={k} className={`cal-day ${activeDate === k ? 'active' : ''}`} onClick={() => setActiveDate(k)}>
-                                            <div style={{fontSize:'10px', color:'var(--text-dim)'}}>{d.toLocaleDateString('en',{weekday:'short'})}</div>
-                                            <strong>{d.getDate()}</strong>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            <span className="section-label">Daily Tasks</span>
-                            {filteredHabits.map(h => {
-                                const isDone = !!done[activeDate]?.[h.id];
-                                return (
-                                    <div key={h.id} className={`habit-card ${isDone ? 'done' : ''}`} onClick={() => toggle(h.id)}>
-                                        <div style={{display:'flex', gap:'15px', alignItems:'center'}}>
-                                            <span style={{fontSize:'20px'}}>{h.icon}</span>
-                                            <div>
-                                                <div style={{fontWeight:'600'}}>{h.label}</div>
-                                                <div style={{fontSize:'11px', color:'var(--text-dim)'}}>+{h.pts} XP</div>
-                                            </div>
-                                        </div>
-                                        <div className="check-btn">{isDone && <i className="fas fa-check" style={{fontSize:'10px', color:'white'}}></i>}</div>
+                    <span className="section-label">Today's Habits</span>
+                    {filteredHabits.map(h => {
+                        const isDone = !!done[activeDate]?.[h.id];
+                        return (
+                            <div key={h.id} className={`habit-card ${isDone ? 'done' : ''}`} onClick={() => toggle(h.id, h.pts)}>
+                                <div style={{display:'flex', gap:'12px', alignItems:'center'}}>
+                                    <span>{h.icon}</span>
+                                    <div>
+                                        <div style={{fontWeight:'600', fontSize:'14px'}}>{h.label}</div>
+                                        <div style={{fontSize:'10px', color:'var(--text-dim)'}}>+{h.pts} XP</div>
                                     </div>
-                                );
-                            })}
-                        </div>
-                    )}
+                                    {h.isCustom && <i className="fas fa-times delete-habit" onClick={(e) => { e.stopPropagation(); removeCustom(h.id); }}></i>}
+                                </div>
+                                <div className="check-btn">{isDone && <i className="fas fa-check" style={{fontSize:'10px', color:'white'}}></i>}</div>
+                            </div>
+                        );
+                    })}
+
+                    <span className="section-label">Add Custom Habit</span>
+                    <div className="custom-input-box">
+                        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder="E.g. Study Math..." onKeyPress={(e) => e.key === 'Enter' && addCustom()} />
+                        <button className="add-btn" onClick={addCustom}>Add</button>
+                    </div>
                 </div>
             );
         }
 
         const root = ReactDOM.createRoot(document.getElementById("root"));
         root.render(<App />);
-
-        if ("serviceWorker" in navigator) {
-            navigator.serviceWorker.register("./sw.js");
-        }
     </script>
 </body>
 </html>
