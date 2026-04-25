@@ -7,17 +7,70 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#050a14">
 
-<title>Kanza Gamified Tracker</title>
+<title>Kanza Tracker</title>
 
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
 <style>
-body { margin:0; background:#050a14; color:#e2e8f0; font-family:system-ui; }
-.card { background:#0f172a; padding:15px; border-radius:16px; margin-bottom:10px; }
-button { cursor:pointer; }
-.badge { padding:6px 10px; background:#1e293b; border-radius:10px; margin-right:5px; }
+body {
+  margin:0;
+  background:#050a14;
+  color:#e2e8f0;
+  font-family:system-ui;
+}
+
+.card {
+  background:#0f172a;
+  border-radius:20px;
+  padding:16px;
+  margin-bottom:12px;
+  border:1px solid #1e293b;
+}
+
+.habit {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px;
+  border-radius:20px;
+  margin-bottom:10px;
+  transition:0.2s;
+}
+
+.habit:active {
+  transform:scale(0.97);
+}
+
+.flame {
+  animation: flame 1s infinite alternate;
+}
+
+@keyframes flame {
+  from { transform: scale(1); }
+  to { transform: scale(1.2); }
+}
+
+.levelup {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.9);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  z-index:999;
+  animation:fade 0.5s;
+}
+
+@keyframes fade {
+  from {opacity:0;}
+  to {opacity:1;}
+}
 </style>
 </head>
 
@@ -38,13 +91,15 @@ const HABITS = [
 
 const PERIODS_HIDE = new Set(["fajr"]);
 
-/* ---------------- HELPERS ---------------- */
-const getKey = d => d.toISOString().split("T")[0];
+const getKey = (d) => {
+  const local = new Date(d.getTime() - d.getTimezoneOffset()*60000);
+  return local.toISOString().split("T")[0];
+};
 
 const getLast7Days = () => {
-  const arr = [];
-  for (let i=6;i>=0;i--){
-    const d = new Date();
+  const arr=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();
     d.setDate(d.getDate()-i);
     arr.push(d);
   }
@@ -58,6 +113,7 @@ const [done,setDone]=useState({});
 const [pts,setPts]=useState(0);
 const [day,setDay]=useState(new Date());
 const [period,setPeriod]=useState(false);
+const [levelUp,setLevelUp]=useState(false);
 
 const dk = getKey(day);
 
@@ -73,17 +129,28 @@ useEffect(()=>{
   localStorage.setItem("xp",pts);
 },[done,pts]);
 
+/* LEVEL */
+const level = Math.floor(pts/500);
+const progressXP = pts % 500;
+
 /* TOGGLE */
 const toggle = (id)=>{
   const h = HABITS.find(x=>x.id===id);
   const was = !!done[dk]?.[id];
+
+  const newPts = pts + (was?-h.pts:h.pts);
+
+  if(Math.floor(newPts/500) > level){
+    setLevelUp(true);
+    setTimeout(()=>setLevelUp(false),2000);
+  }
 
   setDone(p=>({
     ...p,
     [dk]: {...(p[dk]||{}), [id]:!was}
   }));
 
-  setPts(p=>p+(was?-h.pts:h.pts));
+  setPts(newPts);
 };
 
 /* FILTER */
@@ -95,19 +162,14 @@ const habitsToday = HABITS.filter(h =>
 const completed = habitsToday.filter(h=>done[dk]?.[h.id]).length;
 const progress = habitsToday.length ? (completed/habitsToday.length)*100 : 0;
 
-/* LEVEL */
-const level = Math.floor(pts/500);
-const nextLevelXP = 500 - (pts % 500);
-
 /* STREAK */
 const streak = useMemo(()=>{
-  let count = 0;
+  let count=0;
   for(let i=0;i<30;i++){
-    const d = new Date();
+    const d=new Date();
     d.setDate(d.getDate()-i);
-    const k = getKey(d);
-    const hs = HABITS.length;
-    const comp = HABITS.filter(h=>done[k]?.[h.id]).length;
+    const k=getKey(d);
+    const comp=HABITS.filter(h=>done[k]?.[h.id]).length;
     if(comp>0) count++;
     else break;
   }
@@ -115,16 +177,16 @@ const streak = useMemo(()=>{
 },[done]);
 
 /* BADGES */
-const badges = [];
+const badges=[];
 if(streak>=3) badges.push("🔥 3 Day Streak");
 if(streak>=7) badges.push("🔥 7 Day Streak");
 if(pts>=1000) badges.push("💎 1000 XP");
 
 /* RADAR */
 const cats=["salah","quran","dhikr","health"];
-const radarVals = cats.map(c=>{
-  const hs = HABITS.filter(h=>h.cat===c);
-  const comp = hs.filter(h=>done[dk]?.[h.id]).length;
+const radarVals=cats.map(c=>{
+  const hs=HABITS.filter(h=>h.cat===c);
+  const comp=hs.filter(h=>done[dk]?.[h.id]).length;
   return (comp/hs.length)*100||0;
 });
 
@@ -134,10 +196,10 @@ const radarPoints = radarVals.map((v,i)=>{
   return [80+Math.cos(angle)*r,80+Math.sin(angle)*r];
 }).join(" ");
 
-/* WEEKLY */
+/* WEEK */
 const week = getLast7Days().map(d=>{
   const k=getKey(d);
-  const comp = HABITS.filter(h=>done[k]?.[h.id]).length;
+  const comp=HABITS.filter(h=>done[k]?.[h.id]).length;
   return (comp/HABITS.length)*100;
 });
 
@@ -145,18 +207,34 @@ const week = getLast7Days().map(d=>{
 return(
 <div style={{padding:20}}>
 
-<h2>Kanza Tracker</h2>
+{/* LEVEL UP SCREEN */}
+{levelUp && (
+<div className="levelup">
+<h1 style={{color:"#34d399"}}>LEVEL UP!</h1>
+<h2>Level {level+1}</h2>
+</div>
+)}
 
-<div>XP: {pts} | Level: {level}</div>
-<div>Next Level in: {nextLevelXP} XP</div>
-<div>🔥 Streak: {streak}</div>
+{/* HEADER */}
+<h2>Kanza</h2>
+<div>Level {level} | XP {pts}</div>
 
-<div style={{margin:"10px 0"}}>
-{badges.map((b,i)=><span key={i} className="badge">{b}</span>)}
+<div style={{height:10,background:"#020617",borderRadius:10,marginBottom:15}}>
+<div style={{
+width:`${(progressXP/500)*100}%`,
+height:"100%",
+background:"#34d399",
+borderRadius:10
+}}/>
+</div>
+
+{/* STREAK */}
+<div className="card">
+🔥 <span className="flame">{streak}</span> Day Streak
 </div>
 
 {/* CALENDAR */}
-<div style={{display:"flex",gap:5,marginBottom:10}}>
+<div style={{display:"flex",gap:5}}>
 {getLast7Days().map(d=>{
 const k=getKey(d);
 return(
@@ -176,9 +254,12 @@ return(
 {habitsToday.map(h=>{
 const isDone=!!done[dk]?.[h.id];
 return(
-<div key={h.id} className="card"
+<div key={h.id}
+className="habit"
 onClick={()=>toggle(h.id)}
-style={{background:isDone?"#0f5132":"#0f172a"}}>
+style={{
+background:isDone?"#064e3b":"#0f172a"
+}}>
 {h.label} (+{h.pts})
 </div>
 );
@@ -186,14 +267,21 @@ style={{background:isDone?"#0f5132":"#0f172a"}}>
 
 {/* PROGRESS */}
 <div className="card">
-Progress: {Math.round(progress)}%
+Daily Progress: {Math.round(progress)}%
+</div>
+
+{/* BADGES */}
+<div className="card">
+{badges.length===0?"No badges yet":
+badges.map((b,i)=><div key={i}>{b}</div>)}
 </div>
 
 {/* RADAR */}
 <div className="card">
 <svg width="160" height="160">
 <polygon points={radarPoints}
-fill="rgba(52,211,153,0.3)" stroke="#34d399"/>
+fill="rgba(52,211,153,0.3)"
+stroke="#34d399"/>
 </svg>
 </div>
 
@@ -206,7 +294,7 @@ x={i*40}
 y={120-v}
 width="25"
 height={v}
-fill={v>70?"#34d399":"#d4a843"}/>
+fill={v>70?"#34d399":"#fbbf24"}/>
 ))}
 </svg>
 </div>
