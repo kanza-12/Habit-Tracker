@@ -31,7 +31,6 @@
 
         .container { max-width: 420px; margin: 0 auto; padding: 20px; }
 
-        /* XP & Level */
         .profile-section { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
         .xp-card { 
             background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 20px;
@@ -40,23 +39,19 @@
         .xp-bar-bg { background: #000; height: 8px; border-radius: 4px; margin-top: 10px; overflow: hidden; }
         .xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); transition: 0.5s; box-shadow: 0 0 10px var(--accent); }
 
-        /* Stats & Radar */
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .stat-box { background: var(--glass); border: 1px solid var(--border); padding: 12px; border-radius: 12px; text-align: center; }
         .radar-container { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; justify-content: center; margin-bottom: 20px; }
 
-        /* Mode Toggle */
         .toggle-container { background: var(--surface); display: flex; border-radius: 30px; padding: 4px; margin-bottom: 20px; border: 1px solid var(--border); }
         .toggle-btn { flex: 1; padding: 10px; text-align: center; border-radius: 25px; cursor: pointer; transition: 0.3s; font-size: 14px; font-weight: 600; color: var(--text-dim); }
         .toggle-btn.active.normal { background: var(--accent); color: white; }
         .toggle-btn.active.period { background: #be185d; color: white; box-shadow: 0 0 15px rgba(190, 24, 93, 0.4); }
 
-        /* Calendar */
         .cal-strip { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .cal-day { width: 45px; padding: 10px 0; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid transparent; }
         .cal-day.active { background: var(--surface); border-color: var(--accent); }
 
-        /* Habits */
         .habit-card { 
             background: var(--glass); border: 1px solid var(--border); padding: 16px; border-radius: 16px; 
             margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
@@ -65,10 +60,8 @@
         .check-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text-dim); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .done .check-btn { background: var(--accent); border-color: var(--accent); }
 
-        /* Badges */
         .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
         .badge { background: #1e293b; color: #fbbf24; padding: 4px 10px; border-radius: 8px; font-size: 11px; border: 1px solid #fbbf24; font-weight: bold; }
-
         .section-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
     </style>
 </head>
@@ -112,15 +105,18 @@
                 const wasDone = !!done[activeDate]?.[id];
                 if (window.navigator.vibrate) window.navigator.vibrate(15);
                 setDone(p => ({ ...p, [activeDate]: { ...p[activeDate], [id]: !wasDone } }));
-                setPts(p => wasDone ? p - habit.pts : p + habit.pts);
+                setPts(p => wasDone ? Math.max(0, p - habit.pts) : p + habit.pts);
             };
 
             const streak = useMemo(() => {
                 let count = 0; let d = new Date();
                 while (true) {
                     const k = d.toISOString().split('T')[0];
-                    if (Object.values(done[k] || {}).some(v => v)) { count++; d.setDate(d.getDate() - 1); } 
-                    else break;
+                    const dayData = done[k] || {};
+                    if (Object.values(dayData).some(v => v === true)) { 
+                        count++; 
+                        d.setDate(d.getDate() - 1); 
+                    } else break;
                 }
                 return count;
             }, [done]);
@@ -144,19 +140,20 @@
                             <h1 style={{margin:0}}>Kanza Ultimate</h1>
                             <span style={{color:'var(--text-dim)'}}>Lvl {level} Soul</span>
                         </div>
+                        {/* FIXED: Quotes added around var(--accent) */}
                         <div onClick={() => setShowStats(!showStats)} style={{cursor:'pointer', color: 'var(--accent)'}}>
                             <i className={`fas fa-${showStats ? 'list' : 'chart-pie'} fa-lg`}></i>
                         </div>
                     </div>
 
                     <div className="xp-card">
-                        <div style={{display:'flex', justifyBetween:'space-between', fontSize:'12px'}}>
-                            <div style={{display:'flex', width:'100%', justifyContent:'space-between'}}>
-                                <span>Progress to Level {level+1}</span>
-                                <span>{xpInLevel}/500 XP</span>
-                            </div>
+                        <div style={{display:'flex', justifyContent:'space-between', fontSize:'12px'}}>
+                            <span>Progress to Level {level+1}</span>
+                            <span>{xpInLevel}/500 XP</span>
                         </div>
-                        <div className="xp-bar-bg"><div className="xp-bar-fill" style={{width: `${(xpInLevel/500)*100}%`}}></div></div>
+                        <div className="xp-bar-bg">
+                            <div className="xp-bar-fill" style={{width: `${(xpInLevel/500)*100}%`}}></div>
+                        </div>
                     </div>
 
                     <div className="badge-row">
