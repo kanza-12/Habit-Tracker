@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Kanza Tracker</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#050a14">
+
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<style>
+body {
+  margin:0;
+  background:#050a14;
+  color:#e2e8f0;
+  font-family:system-ui;
+}
+button { cursor:pointer; }
+
+.card {
+  background:#0f172a;
+  border-radius:20px;
+  padding:18px;
+  margin-bottom:14px;
+  border:1px solid #1e293b;
+}
+</style>
+</head>
+
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+
+const { useState, useEffect, useMemo } = React;
+
+/* CONFIG */
+const HABITS = [
+  { id:"wake", label:"Wake up 3:30am", cat:"health", icon:"⏰", pts:15 },
+  { id:"tahajjud", label:"Tahajjud", cat:"salah", icon:"🌙", pts:25 },
+  { id:"fajr", label:"Fajr", cat:"salah", icon:"🌅", pts:20 },
+  { id:"zuhr", label:"Zuhr", cat:"salah", icon:"☀️", pts:20 },
+  { id:"asr", label:"Asr", cat:"salah", icon:"🌤️", pts:20 },
+  { id:"maghrib", label:"Maghrib", cat:"salah", icon:"🌇", pts:20 },
+  { id:"isha", label:"Isha", cat:"salah", icon:"🌃", pts:20 },
+  { id:"quran", label:"Quran", cat:"quran", icon:"📖", pts:30 },
+  { id:"astaghfaar", label:"1k Astaghfaar", cat:"dhikr", icon:"🤲", pts:25 },
+  { id:"darood", label:"1k Darood", cat:"dhikr", icon:"💚", pts:25 },
+  { id:"digital", label:"Digital Fasting", cat:"health", icon:"📵", pts:20 },
+  { id:"water", label:"8 Glasses Water", cat:"health", icon:"💧", pts:10 },
+];
+
+const RANKS = [
+  { min:0, name:"Seeker", icon:"🌱", color:"#6b7280" },
+  { min:500, name:"Devoted", icon:"🕯️", color:"#34d399" },
+  { min:1500, name:"Steadfast", icon:"⚓", color:"#fbbf24" },
+  { min:3000, name:"Faithful", icon:"🌙", color:"#f472b6" },
+  { min:6000, name:"Enlightened", icon:"☀️", color:"#fb923c" },
+  { min:10000,name:"Radiant", icon:"💎", color:"#38bdf8" },
+];
+
+const PERIODS_HIDE = new Set(["fajr","zuhr","asr","maghrib","isha","tahajjud","quran"]);
+
+/* HELPERS */
+const today = new Date();
+const dk = today.toISOString().split("T")[0];
+const day = today.getDay();
+
+function App(){
+
+const [tab,setTab]=useState("today");
+const [pts,setPts]=useState(0);
+const [done,setDone]=useState({});
+const [periods,setPeriods]=useState(false);
+const [toast,setToast]=useState(null);
+
+useEffect(()=>{
+  setPts(parseInt(localStorage.getItem("xp")||"0"));
+  setDone(JSON.parse(localStorage.getItem("done")||"{}"));
+},[]);
+
+useEffect(()=>{
+  localStorage.setItem("xp",pts);
+  localStorage.setItem("done",JSON.stringify(done));
+},[pts,done]);
+
+const toggle=(id)=>{
+  const h=HABITS.find(x=>x.id===id);
+  const was=!!done[dk]?.[id];
+
+  setDone(p=>({
+    ...p,
+    [dk]:{...(p[dk]||{}),[id]:!was}
+  }));
+
+  setPts(p=>p+(was?-h.pts:h.pts));
+
+  setToast({msg:was?"XP Removed":`+${h.pts} XP`,color:was?"#ef4444":"#34d399"});
+  setTimeout(()=>setToast(null),1500);
+};
+
+const rank=[...RANKS].reverse().find(r=>pts>=r.min)||RANKS[0];
+
+const todayHabits=HABITS.filter(h=>
+ (!periods||!PERIODS_HIDE.has(h.id))
+);
+
+const completed=todayHabits.filter(h=>done[dk]?.[h.id]).length;
+const progress=todayHabits.length?(completed/todayHabits.length)*100:0;
+
+/* RADAR */
+const radarCats=["salah","quran","dhikr","health"];
+const radarVals=radarCats.map(c=>{
+  const hs=HABITS.filter(h=>h.cat===c);
+  const comp=hs.filter(h=>done[dk]?.[h.id]).length;
+  return (comp/hs.length)*100||0;
+});
+
+const radarPoints=radarVals.map((v,i)=>{
+  const angle=(Math.PI*2*i)/radarVals.length;
+  const r=(v/100)*70;
+  return [100+Math.cos(angle)*r,100+Math.sin(angle)*r];
+}).join(" ");
+
+/* BAR */
+const days=["S","M","T","W","T","F","S"];
+const barVals=days.map(()=>Math.random()*100);
+
+/* UI */
+return(
+<div style={{padding:20}}>
+
+{/* HEADER */}
+<div style={{display:"flex",justifyContent:"space-between"}}>
+<div>
+<h2>KANZA</h2>
+<div style={{color:rank.color}}>{rank.icon} {rank.name}</div>
+<div>{pts} XP</div>
+</div>
+
+{/* 3D PROGRESS */}
+<svg width="90" height="90">
+<circle cx="45" cy="45" r="38" fill="rgba(52,211,153,0.1)"/>
+<circle cx="45" cy="45" r="32" stroke="#1e293b" strokeWidth="6" fill="#0f172a"/>
+<circle cx="45" cy="45" r="32"
+ stroke="#34d399" strokeWidth="6"
+ fill="none"
+ strokeDasharray="201"
+ strokeDashoffset={201-(201*progress)/100}
+/>
+<text x="45" y="50" textAnchor="middle">{Math.round(progress)}%</text>
+</svg>
+
+</div>
+
+{/* NAV */}
+<div style={{display:"flex",gap:10,margin:"20px 0"}}>
+<button onClick={()=>setTab("today")}>Today</button>
+<button onClick={()=>setTab("analytics")}>Analytics</button>
+</div>
+
+{/* TODAY */}
+{tab==="today"&&<>
+<div className="card" onClick={()=>setPeriods(!periods)}>
+{periods?"🌸 Period Mode":"🌙 Standard Mode"}
+</div>
+
+{todayHabits.map(h=>{
+const isDone=!!done[dk]?.[h.id];
+return(
+<div key={h.id} className="card"
+ onClick={()=>toggle(h.id)}
+ style={{background:isDone?"rgba(52,211,153,0.1)":"#0f172a"}}>
+{h.icon} {h.label} (+{h.pts})
+</div>
+);
+})}
+</>}
+
+{/* ANALYTICS */}
+{tab==="analytics"&&<>
+<div className="card">
+<svg width="200" height="200">
+<polygon points={radarPoints}
+ fill="rgba(52,211,153,0.3)" stroke="#34d399"/>
+</svg>
+</div>
+
+<div className="card">
+<svg width="100%" height="150">
+{barVals.map((v,i)=>(
+<rect key={i}
+ x={i*40}
+ y={150-v}
+ width="25"
+ height={v}
+ fill={v>70?"#34d399":"#d4a843"}/>
+))}
+</svg>
+</div>
+</>}
+
+{/* TOAST */}
+{toast&&(
+<div style={{
+position:"fixed",
+bottom:30,left:"50%",
+transform:"translateX(-50%)",
+background:toast.color,
+padding:"10px 20px",
+borderRadius:20
+}}>
+{toast.msg}
+</div>
+)}
+
+</div>
+);
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+
+/* SERVICE WORKER REGISTER */
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./sw.js");
+}
+
+</script>
+</body>
+</html>
