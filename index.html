@@ -141,7 +141,7 @@
                     <div className="profile-section">
                         <div>
                             <h1 style={{margin:0, fontSize: '24px'}}>Kanza Pro</h1>
-                            <span style={{color:'var(--text-dim)'}}>Level {level} Mastery</span>
+                            <span style={{color: 'var(--text-dim)'}}>Level {level} Mastery</span>
                         </div>
                     </div>
 
@@ -150,7 +150,9 @@
                             <span>XP Progress</span>
                             <span>{xpInLevel}/500</span>
                         </div>
-                        <div className="xp-bar-bg"><div className="xp-bar-fill" style={{width: `${(xpInLevel/500)*100}%`}}></div></div>
+                        <div className="xp-bar-bg">
+                            <div className="xp-bar-fill" style={{width: `${(xpInLevel/500)*100}%`}}></div>
+                        </div>
                     </div>
 
                     <div className="toggle-container">
@@ -164,7 +166,7 @@
                             const k = d.toISOString().split('T')[0];
                             return (
                                 <div key={k} className={`cal-day ${activeDate === k ? 'active' : ''}`} onClick={() => setActiveDate(k)}>
-                                    <div style={{fontSize:'10px', color:'var(--text-dim)'}}>{d.toLocaleDateString('en',{weekday:'short'})}</div>
+                                    <div style={{fontSize:'10px', color: 'var(--text-dim)'}}>{d.toLocaleDateString('en',{weekday:'short'})}</div>
                                     <strong>{d.getDate()}</strong>
                                 </div>
                             );
@@ -180,7 +182,7 @@
                                     <span>{h.icon}</span>
                                     <div>
                                         <div style={{fontWeight:'600', fontSize:'14px'}}>{h.label}</div>
-                                        <div style={{fontSize:'10px', color:'var(--text-dim)'}}>+{h.pts} XP</div>
+                                        <div style={{fontSize:'10px', color: 'var(--text-dim)'}}>+{h.pts} XP</div>
                                     </div>
                                     {h.isCustom && <i className="fas fa-times delete-habit" onClick={(e) => { e.stopPropagation(); removeCustom(h.id); }}></i>}
                                 </div>
