@@ -31,7 +31,6 @@
 
         .container { max-width: 420px; margin: 0 auto; padding: 20px; padding-bottom: 120px; }
 
-        /* Header & XP */
         .profile-section { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
         .xp-card { 
             background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 20px;
@@ -40,18 +39,15 @@
         .xp-bar-bg { background: #000; height: 8px; border-radius: 4px; margin-top: 10px; overflow: hidden; }
         .xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); transition: 0.5s; box-shadow: 0 0 10px var(--accent); }
 
-        /* Mode Toggle */
         .toggle-container { background: var(--surface); display: flex; border-radius: 30px; padding: 4px; margin-bottom: 20px; border: 1px solid var(--border); }
         .toggle-btn { flex: 1; padding: 10px; text-align: center; border-radius: 25px; cursor: pointer; transition: 0.3s; font-size: 14px; font-weight: 600; color: var(--text-dim); }
         .toggle-btn.active.normal { background: var(--accent); color: white; }
         .toggle-btn.active.period { background: #be185d; color: white; box-shadow: 0 0 15px rgba(190, 24, 93, 0.4); }
 
-        /* Calendar */
         .cal-strip { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .cal-day { width: 45px; padding: 10px 0; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid transparent; }
         .cal-day.active { background: var(--surface); border-color: var(--accent); }
 
-        /* Habits */
         .habit-card { 
             background: var(--glass); border: 1px solid var(--border); padding: 14px; border-radius: 16px; 
             margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
@@ -60,7 +56,6 @@
         .check-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text-dim); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .done .check-btn { background: var(--accent); border-color: var(--accent); }
 
-        /* Custom Habit Input */
         .custom-input-box {
             background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 12px;
             display: flex; gap: 10px; margin-top: 20px;
@@ -71,7 +66,6 @@
         .add-btn { background: var(--accent); border: none; color: white; padding: 5px 15px; border-radius: 10px; cursor: pointer; }
 
         .section-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin: 15px 0 10px 0; display: block; }
-        
         .delete-habit { color: #ef4444; font-size: 12px; margin-left: 10px; opacity: 0.5; cursor: pointer; }
     </style>
 </head>
@@ -82,7 +76,6 @@
         const { useState, useEffect, useMemo } = React;
 
         const DEFAULT_HABITS = [
-            // Disappear in Period Mode
             { id: "wakeup", label: "Wake up 3:30 AM", pts: 25, icon: "⏰", hideInPeriod: true },
             { id: "tahajjud", label: "Tahajjud", pts: 40, icon: "✨", hideInPeriod: true },
             { id: "fajr", label: "Fajr Prayer", pts: 20, icon: "🌅", hideInPeriod: true },
@@ -94,8 +87,6 @@
             { id: "waqiah", label: "Surah Al-Waqiah", pts: 15, icon: "💎", hideInPeriod: true },
             { id: "yaseen", label: "Surah Yaseen", pts: 15, icon: "💚", hideInPeriod: true },
             { id: "rahman", label: "Surah Ar-Rahman", pts: 15, icon: "🌿", hideInPeriod: true },
-            
-            // Stay in Period Mode
             { id: "water", label: "Drink Water", pts: 10, icon: "💧", hideInPeriod: false },
             { id: "sleep", label: "Sleep before 12 AM", pts: 20, icon: "😴", hideInPeriod: false },
             { id: "tajweed", label: "Learn Tajweed", pts: 25, icon: "🗣️", hideInPeriod: false },
