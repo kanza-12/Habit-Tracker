@@ -1,315 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Kanza Ultimate</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --glass: rgba(33, 38, 45, 0.7);
+            --border: rgba(240, 246, 252, 0.1);
+            --accent: #10b981;
+            --accent-light: #34d399;
+            --text-main: #f0f6fc;
+            --text-dim: #8b949e;
+        }
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#050a14">
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text-main);
+            font-family: -apple-system, system-ui, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-<title>Kanza Tracker</title>
+        .container { max-width: 420px; margin: 0 auto; padding: 20px; }
 
-<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        /* XP & Level */
+        .profile-section { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
+        .xp-card { 
+            background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 15px; margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .xp-bar-bg { background: #000; height: 8px; border-radius: 4px; margin-top: 10px; overflow: hidden; }
+        .xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-light)); transition: 0.5s; box-shadow: 0 0 10px var(--accent); }
 
-<style>
-body {
-  margin:0;
-  background:#050a14;
-  color:#e2e8f0;
-  font-family:system-ui;
-}
+        /* Stats & Radar */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .stat-box { background: var(--glass); border: 1px solid var(--border); padding: 12px; border-radius: 12px; text-align: center; }
+        .radar-container { background: var(--glass); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: flex; justify-content: center; margin-bottom: 20px; }
 
-.card {
-  background:#0f172a;
-  border-radius:20px;
-  padding:16px;
-  margin-bottom:12px;
-  border:1px solid #1e293b;
-}
+        /* Mode Toggle */
+        .toggle-container { background: var(--surface); display: flex; border-radius: 30px; padding: 4px; margin-bottom: 20px; border: 1px solid var(--border); }
+        .toggle-btn { flex: 1; padding: 10px; text-align: center; border-radius: 25px; cursor: pointer; transition: 0.3s; font-size: 14px; font-weight: 600; color: var(--text-dim); }
+        .toggle-btn.active.normal { background: var(--accent); color: white; }
+        .toggle-btn.active.period { background: #be185d; color: white; box-shadow: 0 0 15px rgba(190, 24, 93, 0.4); }
 
-.habit {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:18px;
-  border-radius:20px;
-  margin-bottom:10px;
-  transition:0.2s;
-}
+        /* Calendar */
+        .cal-strip { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .cal-day { width: 45px; padding: 10px 0; border-radius: 12px; text-align: center; cursor: pointer; border: 1px solid transparent; }
+        .cal-day.active { background: var(--surface); border-color: var(--accent); }
 
-.habit:active {
-  transform:scale(0.97);
-}
+        /* Habits */
+        .habit-card { 
+            background: var(--glass); border: 1px solid var(--border); padding: 16px; border-radius: 16px; 
+            margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
+        }
+        .habit-card.done { border-color: var(--accent); background: rgba(16, 185, 129, 0.05); }
+        .check-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text-dim); display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .done .check-btn { background: var(--accent); border-color: var(--accent); }
 
-.flame {
-  animation: flame 1s infinite alternate;
-}
+        /* Badges */
+        .badge-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .badge { background: #1e293b; color: #fbbf24; padding: 4px 10px; border-radius: 8px; font-size: 11px; border: 1px solid #fbbf24; font-weight: bold; }
 
-@keyframes flame {
-  from { transform: scale(1); }
-  to { transform: scale(1.2); }
-}
-
-.levelup {
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.9);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  z-index:999;
-  animation:fade 0.5s;
-}
-
-@keyframes fade {
-  from {opacity:0;}
-  to {opacity:1;}
-}
-</style>
+        .section-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; display: block; }
+    </style>
 </head>
-
 <body>
-<div id="root"></div>
+    <div id="root"></div>
 
-<script type="text/babel">
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
 
-const { useState, useEffect, useMemo } = React;
+        const HABITS = [
+            { id: "fajr", label: "Fajr", cat: "salah", pts: 20, icon: "🌅" },
+            { id: "dhuhr", label: "Dhuhr", cat: "salah", pts: 20, icon: "☀️" },
+            { id: "asr", label: "Asr", cat: "salah", pts: 20, icon: "🌤️" },
+            { id: "maghrib", label: "Maghrib", cat: "salah", pts: 20, icon: "🌇" },
+            { id: "isha", label: "Isha", cat: "salah", pts: 20, icon: "🌙" },
+            { id: "quran", label: "Quran", cat: "quran", pts: 30, icon: "📖" },
+            { id: "dhikr", label: "Dhikr", cat: "dhikr", pts: 15, icon: "📿" },
+            { id: "water", label: "Water", cat: "health", pts: 10, icon: "💧" }
+        ];
 
-/* ---------------- CONFIG ---------------- */
-const HABITS = [
-  { id:"fajr", label:"Fajr", cat:"salah", pts:20 },
-  { id:"quran", label:"Quran", cat:"quran", pts:30 },
-  { id:"dhikr", label:"Dhikr", cat:"dhikr", pts:25 },
-  { id:"water", label:"Water", cat:"health", pts:10 },
-];
+        const SALAH_IDS = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
 
-const PERIODS_HIDE = new Set(["fajr"]);
+        function App() {
+            const [done, setDone] = useState(() => JSON.parse(localStorage.getItem("k_ult_done") || "{}"));
+            const [pts, setPts] = useState(() => parseInt(localStorage.getItem("k_ult_xp") || "0"));
+            const [isPeriod, setIsPeriod] = useState(() => localStorage.getItem("k_ult_p") === "true");
+            const [activeDate, setActiveDate] = useState(new Date().toISOString().split('T')[0]);
+            const [showStats, setShowStats] = useState(false);
 
-const getKey = (d) => {
-  const local = new Date(d.getTime() - d.getTimezoneOffset()*60000);
-  return local.toISOString().split("T")[0];
-};
+            useEffect(() => {
+                localStorage.setItem("k_ult_done", JSON.stringify(done));
+                localStorage.setItem("k_ult_xp", pts);
+                localStorage.setItem("k_ult_p", isPeriod);
+            }, [done, pts, isPeriod]);
 
-const getLast7Days = () => {
-  const arr=[];
-  for(let i=6;i>=0;i--){
-    const d=new Date();
-    d.setDate(d.getDate()-i);
-    arr.push(d);
-  }
-  return arr;
-};
+            const level = Math.floor(pts / 500);
+            const xpInLevel = pts % 500;
 
-/* ---------------- APP ---------------- */
-function App(){
+            const toggle = (id) => {
+                const habit = HABITS.find(h => h.id === id);
+                const wasDone = !!done[activeDate]?.[id];
+                if (window.navigator.vibrate) window.navigator.vibrate(15);
+                setDone(p => ({ ...p, [activeDate]: { ...p[activeDate], [id]: !wasDone } }));
+                setPts(p => wasDone ? p - habit.pts : p + habit.pts);
+            };
 
-const [done,setDone]=useState({});
-const [pts,setPts]=useState(0);
-const [day,setDay]=useState(new Date());
-const [period,setPeriod]=useState(false);
-const [levelUp,setLevelUp]=useState(false);
+            const streak = useMemo(() => {
+                let count = 0; let d = new Date();
+                while (true) {
+                    const k = d.toISOString().split('T')[0];
+                    if (Object.values(done[k] || {}).some(v => v)) { count++; d.setDate(d.getDate() - 1); } 
+                    else break;
+                }
+                return count;
+            }, [done]);
 
-const dk = getKey(day);
+            // Radar Data Logic
+            const cats = ["salah", "quran", "dhikr", "health"];
+            const radarPoints = cats.map((c, i) => {
+                const hs = HABITS.filter(h => h.cat === c);
+                const completed = hs.filter(h => done[activeDate]?.[h.id]).length;
+                const val = (completed / hs.length) * 100 || 5; // Minimum 5 for shape
+                const angle = (Math.PI * 2 * i) / cats.length - Math.PI / 2;
+                const r = (val / 100) * 60;
+                return `${80 + Math.cos(angle) * r},${80 + Math.sin(angle) * r}`;
+            }).join(" ");
 
-/* LOAD */
-useEffect(()=>{
-  setDone(JSON.parse(localStorage.getItem("done")||"{}"));
-  setPts(parseInt(localStorage.getItem("xp")||"0"));
-},[]);
+            const filteredHabits = HABITS.filter(h => !(isPeriod && SALAH_IDS.includes(h.id)));
 
-/* SAVE */
-useEffect(()=>{
-  localStorage.setItem("done",JSON.stringify(done));
-  localStorage.setItem("xp",pts);
-},[done,pts]);
+            return (
+                <div className="container">
+                    <div className="profile-section">
+                        <div>
+                            <h1 style={{margin:0}}>Kanza Ultimate</h1>
+                            <span style={{color:'var(--text-dim)'}}>Lvl {level} Soul</span>
+                        </div>
+                        <div onClick={() => setShowStats(!showStats)} style={{cursor:'pointer', color: var(--accent)}}>
+                            <i className={`fas fa-${showStats ? 'list' : 'chart-pie'} fa-lg`}></i>
+                        </div>
+                    </div>
 
-/* LEVEL */
-const level = Math.floor(pts/500);
-const progressXP = pts % 500;
+                    <div className="xp-card">
+                        <div style={{display:'flex', justifyContent:'space-between', fontSize:'12px'}}>
+                            <span>Progress to Level {level+1}</span>
+                            <span>{xpInLevel}/500 XP</span>
+                        </div>
+                        <div className="xp-bar-bg"><div className="xp-bar-fill" style={{width: `${(xpInLevel/500)*100}%`}}></div></div>
+                    </div>
 
-/* TOGGLE */
-const toggle = (id)=>{
-  const h = HABITS.find(x=>x.id===id);
-  const was = !!done[dk]?.[id];
+                    <div className="badge-row">
+                        {streak >= 3 && <span className="badge">🔥 {streak} DAY STREAK</span>}
+                        {pts >= 1000 && <span className="badge">💎 1K XP CLUB</span>}
+                        {isPeriod && <span className="badge" style={{borderColor:'#ec4899', color:'#ec4899'}}>🌸 RECOVERY</span>}
+                    </div>
 
-  const newPts = pts + (was?-h.pts:h.pts);
+                    {showStats ? (
+                        <div className="stats-view">
+                            <span className="section-label">Balance Radar</span>
+                            <div className="radar-container">
+                                <svg width="160" height="160">
+                                    <circle cx="80" cy="80" r="60" fill="none" stroke="var(--border)" strokeDasharray="4" />
+                                    <polygon points={radarPoints} fill="rgba(16, 185, 129, 0.3)" stroke="var(--accent)" strokeWidth="2" />
+                                    {cats.map((c, i) => {
+                                        const angle = (Math.PI * 2 * i) / cats.length - Math.PI / 2;
+                                        return <text key={c} x={80 + Math.cos(angle)*75} y={80 + Math.sin(angle)*75} fill="var(--text-dim)" fontSize="10" textAnchor="middle">{c}</text>
+                                    })}
+                                </svg>
+                            </div>
+                            <div className="stats-grid">
+                                <div className="stat-box"><strong>{streak}</strong><div style={{fontSize:'10px'}}>STREAK</div></div>
+                                <div className="stat-box"><strong>{pts}</strong><div style={{fontSize:'10px'}}>TOTAL XP</div></div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="habit-view">
+                            <div className="toggle-container">
+                                <div className={`toggle-btn ${!isPeriod ? 'active normal' : ''}`} onClick={() => setIsPeriod(false)}>Normal</div>
+                                <div className={`toggle-btn ${isPeriod ? 'active period' : ''}`} onClick={() => setIsPeriod(true)}>Period Mode</div>
+                            </div>
 
-  if(Math.floor(newPts/500) > level){
-    setLevelUp(true);
-    setTimeout(()=>setLevelUp(false),2000);
-  }
+                            <div className="cal-strip">
+                                {[...Array(7)].map((_, i) => {
+                                    const d = new Date(); d.setDate(d.getDate() - (6 - i));
+                                    const k = d.toISOString().split('T')[0];
+                                    return (
+                                        <div key={k} className={`cal-day ${activeDate === k ? 'active' : ''}`} onClick={() => setActiveDate(k)}>
+                                            <div style={{fontSize:'10px', color:'var(--text-dim)'}}>{d.toLocaleDateString('en',{weekday:'short'})}</div>
+                                            <strong>{d.getDate()}</strong>
+                                        </div>
+                                    );
+                                })}
+                            </div>
 
-  setDone(p=>({
-    ...p,
-    [dk]: {...(p[dk]||{}), [id]:!was}
-  }));
+                            <span className="section-label">Daily Tasks</span>
+                            {filteredHabits.map(h => {
+                                const isDone = !!done[activeDate]?.[h.id];
+                                return (
+                                    <div key={h.id} className={`habit-card ${isDone ? 'done' : ''}`} onClick={() => toggle(h.id)}>
+                                        <div style={{display:'flex', gap:'15px', alignItems:'center'}}>
+                                            <span style={{fontSize:'20px'}}>{h.icon}</span>
+                                            <div>
+                                                <div style={{fontWeight:'600'}}>{h.label}</div>
+                                                <div style={{fontSize:'11px', color:'var(--text-dim)'}}>+{h.pts} XP</div>
+                                            </div>
+                                        </div>
+                                        <div className="check-btn">{isDone && <i className="fas fa-check" style={{fontSize:'10px', color:'white'}}></i>}</div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            );
+        }
 
-  setPts(newPts);
-};
-
-/* FILTER */
-const habitsToday = HABITS.filter(h =>
- (!period || !PERIODS_HIDE.has(h.id))
-);
-
-/* PROGRESS */
-const completed = habitsToday.filter(h=>done[dk]?.[h.id]).length;
-const progress = habitsToday.length ? (completed/habitsToday.length)*100 : 0;
-
-/* STREAK */
-const streak = useMemo(()=>{
-  let count=0;
-  for(let i=0;i<30;i++){
-    const d=new Date();
-    d.setDate(d.getDate()-i);
-    const k=getKey(d);
-    const comp=HABITS.filter(h=>done[k]?.[h.id]).length;
-    if(comp>0) count++;
-    else break;
-  }
-  return count;
-},[done]);
-
-/* BADGES */
-const badges=[];
-if(streak>=3) badges.push("🔥 3 Day Streak");
-if(streak>=7) badges.push("🔥 7 Day Streak");
-if(pts>=1000) badges.push("💎 1000 XP");
-
-/* RADAR */
-const cats=["salah","quran","dhikr","health"];
-const radarVals=cats.map(c=>{
-  const hs=HABITS.filter(h=>h.cat===c);
-  const comp=hs.filter(h=>done[dk]?.[h.id]).length;
-  return (comp/hs.length)*100||0;
-});
-
-const radarPoints = radarVals.map((v,i)=>{
-  const angle=(Math.PI*2*i)/radarVals.length;
-  const r=(v/100)*60;
-  return [80+Math.cos(angle)*r,80+Math.sin(angle)*r];
-}).join(" ");
-
-/* WEEK */
-const week = getLast7Days().map(d=>{
-  const k=getKey(d);
-  const comp=HABITS.filter(h=>done[k]?.[h.id]).length;
-  return (comp/HABITS.length)*100;
-});
-
-/* UI */
-return(
-<div style={{padding:20}}>
-
-{/* LEVEL UP SCREEN */}
-{levelUp && (
-<div className="levelup">
-<h1 style={{color:"#34d399"}}>LEVEL UP!</h1>
-<h2>Level {level+1}</h2>
-</div>
-)}
-
-{/* HEADER */}
-<h2>Kanza</h2>
-<div>Level {level} | XP {pts}</div>
-
-<div style={{height:10,background:"#020617",borderRadius:10,marginBottom:15}}>
-<div style={{
-width:`${(progressXP/500)*100}%`,
-height:"100%",
-background:"#34d399",
-borderRadius:10
-}}/>
-</div>
-
-{/* STREAK */}
-<div className="card">
-🔥 <span className="flame">{streak}</span> Day Streak
-</div>
-
-{/* CALENDAR */}
-<div style={{display:"flex",gap:5}}>
-{getLast7Days().map(d=>{
-const k=getKey(d);
-return(
-<button key={k} onClick={()=>setDay(d)}>
-{d.getDate()}
-</button>
-);
-})}
-</div>
-
-{/* PERIOD */}
-<div className="card" onClick={()=>setPeriod(!period)}>
-{period?"🌸 Period Mode":"🌙 Normal"}
-</div>
-
-{/* HABITS */}
-{habitsToday.map(h=>{
-const isDone=!!done[dk]?.[h.id];
-return(
-<div key={h.id}
-className="habit"
-onClick={()=>toggle(h.id)}
-style={{
-background:isDone?"#064e3b":"#0f172a"
-}}>
-{h.label} (+{h.pts})
-</div>
-);
-})}
-
-{/* PROGRESS */}
-<div className="card">
-Daily Progress: {Math.round(progress)}%
-</div>
-
-{/* BADGES */}
-<div className="card">
-{badges.length===0?"No badges yet":
-badges.map((b,i)=><div key={i}>{b}</div>)}
-</div>
-
-{/* RADAR */}
-<div className="card">
-<svg width="160" height="160">
-<polygon points={radarPoints}
-fill="rgba(52,211,153,0.3)"
-stroke="#34d399"/>
-</svg>
-</div>
-
-{/* BAR */}
-<div className="card">
-<svg width="100%" height="120">
-{week.map((v,i)=>(
-<rect key={i}
-x={i*40}
-y={120-v}
-width="25"
-height={v}
-fill={v>70?"#34d399":"#fbbf24"}/>
-))}
-</svg>
-</div>
-
-</div>
-);
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
-
-/* SW */
-if ("serviceWorker" in navigator) {
- navigator.serviceWorker.register("./sw.js");
-}
-
-</script>
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(<App />);
+    </script>
 </body>
 </html>
