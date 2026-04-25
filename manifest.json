@@ -1,12 +1,6 @@
 {
-  "name": "Kanza Ultimate Tracker",
   "short_name": "Kanza",
-  "description": "Premium habit and spiritual growth tracker.",
-  "start_url": "./index.html",
-  "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#0d1117",
-  "orientation": "portrait",
+  "name": "Kanza Ultimate Tracker",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/5995/5995402.png",
@@ -14,5 +8,9 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0d1117",
+  "background_color": "#0d1117"
 }
